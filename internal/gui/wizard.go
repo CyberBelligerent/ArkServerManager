@@ -298,22 +298,39 @@ func (w *wizard) stepSteamCMD() fyne.CanvasObject {
 			w.showInfo(w.app.T("wizard.steamcmd.detect_title"), w.app.T("wizard.steamcmd.detect_none"))
 		}
 	})
-	installBtn := widget.NewButton(w.app.T("wizard.steamcmd.button_install"), func() {
+	progressLabel := widget.NewLabel("")
+	progressLabel.Wrapping = fyne.TextWrapWord
+
+	installBtn := widget.NewButton(w.app.T("wizard.steamcmd.button_install"), nil)
+	installBtn.OnTapped = func() {
 		dir, _ := steamcmd.DefaultInstallDir()
+		installBtn.Disable()
+		detectBtn.Disable()
+		fyne.Do(func() { progressLabel.SetText(w.app.T("wizard.steamcmd.progress_starting")) })
 		go func() {
+			defer fyne.Do(func() {
+				installBtn.Enable()
+				detectBtn.Enable()
+			})
+			w.app.deps.SteamCMD.SetProgress(func(msg string) {
+				fyne.Do(func() { progressLabel.SetText(msg) })
+			})
+			defer w.app.deps.SteamCMD.SetProgress(nil)
 			if err := w.app.deps.SteamCMD.Install(context.Background(), dir); err != nil {
+				fyne.Do(func() { progressLabel.SetText("") })
 				w.showError(err)
 				return
 			}
 			fyne.Do(func() {
+				progressLabel.SetText("")
 				pathEntry.SetText(w.app.deps.SteamCMD.Path())
 				w.state.SteamCMDPath = w.app.deps.SteamCMD.Path()
 				w.showInfo(w.app.T("wizard.steamcmd.install_done_title"), w.app.T("wizard.steamcmd.install_done_body", dir))
 			})
 		}()
-	})
+	}
 
-	return container.NewVBox(title, msg, pathRow, container.NewHBox(detectBtn, installBtn))
+	return container.NewVBox(title, msg, pathRow, container.NewHBox(detectBtn, installBtn), progressLabel)
 }
 
 func (w *wizard) stepInstallDir() fyne.CanvasObject {

@@ -43,6 +43,8 @@ type Server struct {
 	InstallDir       string
 	Ports            PortTriple
 	RCONPassword     string
+	ServerPassword   string // optional player join password; empty = open
+	MaxPlayers       int    // 0 = leave at ASA default (currently 70)
 	SettingOverrides map[string]settings.Value
 	ActiveMods       []ModRef
 	ActiveEvent      string

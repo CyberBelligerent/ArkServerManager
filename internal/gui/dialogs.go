@@ -180,6 +180,12 @@ func (a *App) showNewServerDialog(preselectedCluster *cluster.Cluster) {
 	rconPwdEntry := widget.NewPasswordEntry()
 	rconPwdEntry.SetPlaceHolder(a.T("newserver.rcon_placeholder"))
 
+	serverPwdEntry := widget.NewPasswordEntry()
+	serverPwdEntry.SetPlaceHolder(a.T("newserver.server_pass_placeholder"))
+
+	maxPlayersEntry := widget.NewEntry()
+	maxPlayersEntry.SetText("0")
+
 	anticheatCheck := widget.NewCheck("", nil)
 	anticheatCheck.SetChecked(true)
 
@@ -203,6 +209,8 @@ func (a *App) showNewServerDialog(preselectedCluster *cluster.Cluster) {
 			{Text: a.T("newserver.field_query_port"), Widget: queryEntry},
 			{Text: a.T("newserver.field_rcon_port"), Widget: rconEntry},
 			{Text: a.T("newserver.field_rcon_pass"), Widget: rconPwdEntry},
+			{Text: a.T("newserver.field_server_pass"), Widget: serverPwdEntry, HintText: a.T("newserver.field_server_pass_hint")},
+			{Text: a.T("newserver.field_max_players"), Widget: maxPlayersEntry, HintText: a.T("newserver.field_max_players_hint")},
 			{Text: a.T("newserver.field_anticheat"), Widget: anticheatCheck, HintText: a.T("newserver.field_anticheat_hint")},
 			{Text: a.T("newserver.field_mods"), Widget: modsEntry, HintText: a.T("newserver.field_mods_hint")},
 		},
@@ -240,6 +248,17 @@ func (a *App) showNewServerDialog(preselectedCluster *cluster.Cluster) {
 		if err := server.CheckPortConflict(ports, existing); err != nil {
 			return err
 		}
+		maxPlayers := 0
+		if mpText := strings.TrimSpace(maxPlayersEntry.Text); mpText != "" {
+			n, err := atoiTrim(mpText)
+			if err != nil {
+				return fmt.Errorf("max players: %w", err)
+			}
+			if n < 0 {
+				return fmt.Errorf("max players must be 0 or greater")
+			}
+			maxPlayers = n
+		}
 		s := server.Server{
 			ClusterID:        c.ID, // 0 if standalone
 			Name:             name,
@@ -247,6 +266,8 @@ func (a *App) showNewServerDialog(preselectedCluster *cluster.Cluster) {
 			InstallDir:       dir,
 			Ports:            ports,
 			RCONPassword:     rconPwdEntry.Text,
+			ServerPassword:   serverPwdEntry.Text,
+			MaxPlayers:       maxPlayers,
 			AnticheatEnabled: anticheatCheck.Checked,
 			ActiveMods:       parseModIDs(modsEntry.Text),
 		}

@@ -39,11 +39,13 @@ func (r *Repo) Create(ctx context.Context, s Server) (Server, error) {
 		INSERT INTO servers(
 			cluster_id, name, map, install_dir,
 			port, query_port, rcon_port, rcon_password,
+			server_password, max_players,
 			settings_overrides_json, active_mods_json, active_event,
 			anticheat_enabled, status
-		) VALUES (?,?,?,?, ?,?,?,?, ?,?,?, ?,?)`,
+		) VALUES (?,?,?,?, ?,?,?,?, ?,?, ?,?,?, ?,?)`,
 		nullableClusterID(s.ClusterID), s.Name, s.Map, s.InstallDir,
 		s.Ports.Game, s.Ports.Query, s.Ports.RCON, s.RCONPassword,
+		s.ServerPassword, s.MaxPlayers,
 		overridesJSON, modsJSON, s.ActiveEvent,
 		boolToInt(s.AnticheatEnabled), string(s.Status))
 	if err != nil {
@@ -101,11 +103,13 @@ func (r *Repo) Update(ctx context.Context, s Server) error {
 		UPDATE servers SET
 			cluster_id = ?, name = ?, map = ?, install_dir = ?,
 			port = ?, query_port = ?, rcon_port = ?, rcon_password = ?,
+			server_password = ?, max_players = ?,
 			settings_overrides_json = ?, active_mods_json = ?, active_event = ?,
 			anticheat_enabled = ?, status = ?
 		WHERE id = ?`,
 		nullableClusterID(s.ClusterID), s.Name, s.Map, s.InstallDir,
 		s.Ports.Game, s.Ports.Query, s.Ports.RCON, s.RCONPassword,
+		s.ServerPassword, s.MaxPlayers,
 		overridesJSON, modsJSON, s.ActiveEvent,
 		boolToInt(s.AnticheatEnabled), string(s.Status),
 		s.ID)
@@ -183,6 +187,7 @@ func (r *Repo) SuggestPortsFromDB(ctx context.Context) (PortTriple, error) {
 
 const baseSelect = `SELECT id, cluster_id, name, map, install_dir,
 	port, query_port, rcon_port, rcon_password,
+	server_password, max_players,
 	settings_overrides_json, active_mods_json, active_event,
 	anticheat_enabled, status, created_at FROM servers`
 
@@ -203,6 +208,7 @@ func scanServer(row rowScanner) (Server, error) {
 	err := row.Scan(
 		&s.ID, &clusterID, &s.Name, &s.Map, &s.InstallDir,
 		&s.Ports.Game, &s.Ports.Query, &s.Ports.RCON, &s.RCONPassword,
+		&s.ServerPassword, &s.MaxPlayers,
 		&overridesJSON, &modsJSON, &s.ActiveEvent,
 		&anticheatInt, &statusStr, &createdAt,
 	)

@@ -108,8 +108,10 @@ func main() {
 		// "no flag" signal.
 		if srv.ClusterID == 0 {
 			return server.LaunchOptions{
-				Mods:        enabledModIDs(server.MergeMods(nil, srv.ActiveMods)),
-				ActiveEvent: server.ResolveActiveEvent(srv.ActiveEvent, ""),
+				ServerPassword: srv.ServerPassword,
+				MaxPlayers:     srv.MaxPlayers,
+				Mods:           enabledModIDs(server.MergeMods(nil, srv.ActiveMods)),
+				ActiveEvent:    server.ResolveActiveEvent(srv.ActiveEvent, ""),
 			}, nil
 		}
 		c, err := clusterRepo.Get(ctx, srv.ClusterID)
@@ -117,10 +119,12 @@ func main() {
 			return server.LaunchOptions{}, err
 		}
 		return server.LaunchOptions{
-			ClusterID:   c.ClusterID,
-			ClusterDir:  c.ClusterDir,
-			Mods:        enabledModIDs(server.MergeMods(c.ActiveMods, srv.ActiveMods)),
-			ActiveEvent: server.ResolveActiveEvent(srv.ActiveEvent, c.ActiveEvent),
+			ClusterID:      c.ClusterID,
+			ClusterDir:     c.ClusterDir,
+			ServerPassword: srv.ServerPassword,
+			MaxPlayers:     srv.MaxPlayers,
+			Mods:           enabledModIDs(server.MergeMods(c.ActiveMods, srv.ActiveMods)),
+			ActiveEvent:    server.ResolveActiveEvent(srv.ActiveEvent, c.ActiveEvent),
 		}, nil
 	}
 

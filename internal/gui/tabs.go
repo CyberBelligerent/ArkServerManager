@@ -533,7 +533,13 @@ func (t *detailTabs) serverOverview(c cluster.Cluster, s server.Server) fyne.Can
 		}()
 	})
 	writeBat := widget.NewButton(t.app.T("server.overview.button_write_bat"), func() {
-		opts := server.LaunchOptions{ClusterID: c.ClusterID, ClusterDir: c.ClusterDir, Mods: modIDs(s.ActiveMods)}
+		opts := server.LaunchOptions{
+			ClusterID:      c.ClusterID,
+			ClusterDir:     c.ClusterDir,
+			ServerPassword: s.ServerPassword,
+			MaxPlayers:     s.MaxPlayers,
+			Mods:           modIDs(s.ActiveMods),
+		}
 		cmd := server.BuildLaunchCommand(s, opts)
 		path, err := server.WriteBatchFile(s, cmd)
 		if err != nil {
@@ -641,6 +647,13 @@ func (t *detailTabs) serverSettings(c cluster.Cluster, s server.Server) fyne.Can
 	anticheatCheck := widget.NewCheck(t.app.T("newserver.field_anticheat"), nil)
 	anticheatCheck.SetChecked(s.AnticheatEnabled)
 
+	serverPwdEntry := widget.NewPasswordEntry()
+	serverPwdEntry.SetPlaceHolder(t.app.T("newserver.server_pass_placeholder"))
+	serverPwdEntry.SetText(s.ServerPassword)
+
+	maxPlayersEntry := widget.NewEntry()
+	maxPlayersEntry.SetText(strconv.Itoa(s.MaxPlayers))
+
 	modsEntry := widget.NewEntry()
 	modsEntry.SetPlaceHolder(t.app.T("newserver.field_mods_placeholder"))
 	modsEntry.SetText(formatModIDs(s.ActiveMods))
@@ -696,9 +709,20 @@ func (t *detailTabs) serverSettings(c cluster.Cluster, s server.Server) fyne.Can
 				newOverrides[ed.setting.Key] = v
 			}
 		}
+		mp := 0
+		if mpText := strings.TrimSpace(maxPlayersEntry.Text); mpText != "" {
+			n, err := strconv.Atoi(mpText)
+			if err != nil || n < 0 {
+				t.app.showError(fmt.Errorf("max players must be 0 or a positive integer (got %q)", mpText))
+				return
+			}
+			mp = n
+		}
 		s.SettingOverrides = newOverrides
 		s.ActiveEvent = eventValueForLabel(serverEventSel.Selected, serverEventLabels, serverEventValues)
 		s.AnticheatEnabled = anticheatCheck.Checked
+		s.ServerPassword = serverPwdEntry.Text
+		s.MaxPlayers = mp
 		s.ActiveMods = parseModIDs(modsEntry.Text)
 		if err := t.app.deps.Servers.Update(t.app.ctx(), s); err != nil {
 			t.app.showError(err)
@@ -756,7 +780,18 @@ func (t *detailTabs) serverSettings(c cluster.Cluster, s server.Server) fyne.Can
 		nil,
 		modsEntry)
 
-	top := container.NewVBox(header, eventRow, anticheatCheck, modsRow, widget.NewSeparator())
+	serverPassRow := container.NewBorder(nil,
+		widget.NewLabelWithStyle(t.app.T("newserver.field_server_pass_hint"), fyne.TextAlignLeading, fyne.TextStyle{Italic: true}),
+		widget.NewLabelWithStyle(t.app.T("newserver.field_server_pass"), fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+		nil,
+		serverPwdEntry)
+	maxPlayersRow := container.NewBorder(nil,
+		widget.NewLabelWithStyle(t.app.T("newserver.field_max_players_hint"), fyne.TextAlignLeading, fyne.TextStyle{Italic: true}),
+		widget.NewLabelWithStyle(t.app.T("newserver.field_max_players"), fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+		nil,
+		maxPlayersEntry)
+
+	top := container.NewVBox(header, eventRow, anticheatCheck, serverPassRow, maxPlayersRow, modsRow, widget.NewSeparator())
 
 	return container.NewBorder(
 		top,

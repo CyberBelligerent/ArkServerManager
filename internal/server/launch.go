@@ -11,12 +11,13 @@ import (
 type LaunchOptions struct {
 	ClusterID           string
 	ClusterDir          string
-	SessionName         string   // defaults to Server.Name when empty
-	ServerPassword      string   // optional player password
-	ServerAdminPassword string   // optional; falls back to Server.RCONPassword
-	Mods                []int    // CurseForge mod IDs in load order
-	ActiveEvent string
-	ExtraArgs   []string
+	SessionName         string // defaults to Server.Name when empty
+	ServerPassword      string // optional player password
+	ServerAdminPassword string // optional; falls back to Server.RCONPassword
+	MaxPlayers          int    // 0 = omit -WinLiveMaxPlayers and let ASA default
+	Mods                []int  // CurseForge mod IDs in load order
+	ActiveEvent         string
+	ExtraArgs           []string
 }
 
 func ResolveActiveEvent(serverEvent, clusterEvent string) string {
@@ -89,6 +90,9 @@ func BuildLaunchCommand(s Server, opts LaunchOptions) LaunchCommand {
 	}
 	if opts.ActiveEvent != "" && opts.ActiveEvent != "None" {
 		flags = append(flags, "-ActiveEvent="+opts.ActiveEvent)
+	}
+	if opts.MaxPlayers > 0 {
+		flags = append(flags, fmt.Sprintf("-WinLiveMaxPlayers=%d", opts.MaxPlayers))
 	}
 
 	if !s.AnticheatEnabled {
