@@ -114,6 +114,7 @@ func TestInstall_DownloadsAndExtracts(t *testing.T) {
 
 	tmp := t.TempDir()
 	r := New()
+	r.bootstrapFn = func(context.Context) error { return nil }
 	if err := r.Install(context.Background(), tmp); err != nil {
 		t.Fatalf("Install: %v", err)
 	}
@@ -127,6 +128,37 @@ func TestInstall_DownloadsAndExtracts(t *testing.T) {
 	}
 	if r.Path() != target {
 		t.Errorf("path = %q, want %q", r.Path(), target)
+	}
+}
+
+func TestInstall_BootstrapsAfterExtract(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("Install download path is Windows-only in v1")
+	}
+	zipBody := buildZip(t, map[string][]byte{
+		executableName(): []byte("fake-steamcmd-binary"),
+	})
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/zip")
+		_, _ = w.Write(zipBody)
+	}))
+	defer srv.Close()
+	origURL := DownloadURL
+	DownloadURL = srv.URL
+	defer func() { DownloadURL = origURL }()
+
+	tmp := t.TempDir()
+	r := New()
+	called := 0
+	r.bootstrapFn = func(context.Context) error {
+		called++
+		return nil
+	}
+	if err := r.Install(context.Background(), tmp); err != nil {
+		t.Fatalf("Install: %v", err)
+	}
+	if called != 1 {
+		t.Errorf("bootstrap called %d times, want 1", called)
 	}
 }
 

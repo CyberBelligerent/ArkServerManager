@@ -30,10 +30,13 @@ type RealRunner struct {
 	mu         sync.Mutex
 	path       string
 	httpClient *http.Client
+	bootstrapFn func(ctx context.Context) error
 }
 
 func New() *RealRunner {
-	return &RealRunner{httpClient: &http.Client{Timeout: 5 * time.Minute}}
+	r := &RealRunner{httpClient: &http.Client{Timeout: 5 * time.Minute}}
+	r.bootstrapFn = r.bootstrap
+	return r
 }
 
 func NewWithPath(path string) *RealRunner {
@@ -107,6 +110,19 @@ func (r *RealRunner) Install(ctx context.Context, installDir string) error {
 		return fmt.Errorf("steamcmd executable missing after extract: %s", target)
 	}
 	r.SetPath(target)
+	
+	// Fix for issue 1 - SteamCMD not bootstrapped
+	if err := r.bootstrapFn(ctx); err != nil {
+		return fmt.Errorf("bootstrap steamcmd: %w", err)
+	}
+	return nil
+}
+
+func (r *RealRunner) bootstrap(ctx context.Context) error {
+	cmd := exec.CommandContext(ctx, r.Path(), "+quit")
+	if err := cmd.Run(); err != nil && !isBenignExit(err) {
+		return err
+	}
 	return nil
 }
 
@@ -132,7 +148,10 @@ func (r *RealRunner) SelfUpdate(ctx context.Context) error {
 		return errors.New("steamcmd path not set; call Detect or Install first")
 	}
 	cmd := exec.CommandContext(ctx, path, "+quit")
-	return cmd.Run()
+	if err := cmd.Run(); err != nil && !isBenignExit(err) {
+		return err
+	}
+	return nil
 }
 
 func (r *RealRunner) InstallApp(ctx context.Context, appID int, installDir string, validate bool) (<-chan string, error) {
