@@ -50,7 +50,7 @@ dedicated servers on Windows. Features Cluster setup or standalone server.
 
 ## Quick Start (Pre-built Release)
 
-1. Download the latest release zip from the [Releases page](https://github.com/CyberBelligerent/ArkServerManager/releases/tag/v1)
+1. Download the latest release zip from the [Releases page](https://github.com/CyberBelligerent/ArkServerManager/releases/tag/v1.1)
 2. Extract anywhere — e.g. `C:\Tools\ASAManager\`. Keep
    `asamanager.exe` next to the `language/` folder so translations are
    picked up.
