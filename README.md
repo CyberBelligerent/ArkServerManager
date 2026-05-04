@@ -233,6 +233,7 @@ roadmap. Headlines:
   start/stop actions + per-task stagger override
 - **V1 Fixes and Additions (Next)**: drain warnings, restart coalescing, churn
   warnings, optional first-class window/recurring_window triggers
+- **Scheduler Composer**: Planned chaining events and actions together to call RCON commands
 - **V2 Pending** (CurseForge mod browser): skipped for v1
 
 - **Discord Addon** (Discord bot): pending
