@@ -1,0 +1,17 @@
+asamanager.exe
+*.exe
+*.exe~
+
+/vendor/
+*.test
+*.out
+
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+*.db
+*.log
+config.toml

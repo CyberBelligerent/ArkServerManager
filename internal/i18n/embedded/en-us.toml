@@ -1,0 +1,632 @@
+# ASA Server Cluster Manager — English (US) strings.
+#
+# This file is the source of truth for every UI string in the app. To
+# translate the app, copy the file to ./language/<your-locale>.toml
+# (relative to asamanager.exe) and translate the right-hand side of
+# each "key = value" line. Keep the LEFT side (the key) unchanged.
+#
+# Substitution: any string containing "%s" / "%d" / "%q" / "%v" / "%w"
+# uses Go's fmt.Sprintf to plug in runtime values. Keep the same number
+# of placeholders in your translation, in the same order. The app will
+# crash at runtime if the count is wrong.
+#
+# Quoting: TOML strings need their own quote rules. If your translation
+# contains a double-quote, escape it with \" or use a triple-quoted
+# multi-line string ("""like this""").
+#
+# Missing keys: anything not in this file falls back to the embedded
+# en-us defaults. If your locale's file is missing a key entirely, the
+# app shows "[your-locale:key.path]" so you can spot what's missing.
+
+# COMMON
+
+[common]
+save           = "Save"
+cancel         = "Cancel"
+ok             = "OK"
+yes            = "Yes"
+no             = "No"
+apply          = "Apply"
+delete         = "Delete"
+edit           = "Edit"
+add            = "Add"
+remove         = "Remove"
+refresh        = "Refresh"
+close          = "Close"
+create         = "Create"
+back           = "Back"
+next           = "Next"
+finish         = "Finish"
+browse         = "Browse…"
+detect         = "Detect"
+restore        = "Restore"
+done           = "Done"
+required_field = "required"
+
+[common.error]
+invalid_number  = "invalid number %q"
+invalid_integer = "invalid integer %q"
+
+# TOOLBAR + WINDOW
+
+[window]
+main_title         = "ASA Server Cluster Manager"
+placeholder_select = "Select a cluster or server on the left."
+
+[toolbar]
+new_cluster   = "New Cluster"
+new_server    = "New Server"
+run_wizard    = "Run Wizard"
+webhooks      = "Webhooks"
+asb_folder    = "ASB Folder"
+preferences   = "Preferences"
+uninstall     = "Uninstall"
+err_no_asb    = "ASB output dir is not configured"
+
+# TREE (left pane status badges)
+
+[tree.status]
+running  = "[RUN]"
+starting = "[...]"
+stopping = "[stop]"
+crashed  = "[CRASH]"
+off      = "[off]"
+
+[tree]
+standalone_suffix = "(standalone)"
+
+# PREFERENCES dialog (toolbar -> Preferences)
+
+[preferences]
+window_title = "App Preferences"
+
+# WIZARD
+
+[wizard]
+window_title = "ASA Manager — First Run Wizard"
+
+[wizard.locale]
+title         = "Language / Localization"
+description   = "Pick the language the app should use. The choice is saved to your config file and can be changed later in Settings. To add a new translation, drop a TOML file into the ./language folder next to asamanager.exe."
+picker_label  = "Language"
+
+[wizard.steamcmd]
+title              = "Step 2 of 7 — SteamCMD"
+description        = "SteamCMD is required to install and update the ASA Dedicated Server.\nClick Detect to find an existing install, or Install to download it now."
+path_placeholder   = "path to steamcmd.exe"
+button_install     = "Install to default"
+detect_found       = "Found: %s"
+detect_none        = "No existing steamcmd found."
+detect_title       = "Detect"
+install_done_title = "SteamCMD"
+install_done_body  = "Installed to %s"
+
+[wizard.installdir]
+title       = "Step 3 of 7 — Server Install Directory"
+description = "Each server's files install under this base directory, in its own subfolder."
+err_required = "install directory is required"
+
+[wizard.curseforge]
+title       = "Step 4 of 7 — CurseForge API Key (optional)"
+description = "Required for in-app mod browsing. Free key at:\nhttps://console.curseforge.com/?#/api-keys"
+
+[wizard.discord]
+title       = "Step 5 of 7 — Discord Webhook (optional)"
+description = "Paste a Discord webhook URL to receive lifecycle notifications. Leave blank to skip."
+
+[wizard.cluster]
+title             = "Step 6 of 7 — Create First Cluster (optional)"
+description       = "A cluster groups your servers and shares the cluster directory between them.\nLeave the display name blank to skip — you can create clusters later from the toolbar."
+field_name        = "Display Name"
+field_id          = "Cluster ID"
+field_id_placeholder = "auto-generated if blank"
+field_preset      = "Starting preset"
+
+[wizard.server]
+title             = "Step 7 of 7 — Create First Server (optional)"
+description       = "Set the server name and map. Ports auto-allocate from defaults; you can edit them later.\nLeave the server name blank to skip. Files install separately via the Install / Update button."
+field_name        = "Server Name"
+field_map         = "Map"
+field_level       = "Level Name"
+
+# NEW CLUSTER dialog (toolbar)
+
+[newcluster]
+title                = "New Cluster"
+name_placeholder     = "Solo Cluster"
+id_placeholder       = "auto-generated if blank"
+field_name           = "Display Name"
+field_id             = "Cluster ID"
+field_id_hint        = "alphanumeric/_/-, 3-64 chars; blank = generate one"
+field_dir            = "Cluster Directory"
+field_dir_hint       = "shared dir for cluster transfers; blank = default"
+field_preset         = "Starting preset"
+err_name_required    = "display name is required"
+
+[preset_choice]
+solo                 = "Solo Cluster Recommended"
+normal               = "Normal — vanilla defaults"
+none                 = "None — empty cluster"
+
+# NEW SERVER dialog (toolbar)
+
+[newserver]
+title              = "New Server"
+cluster_standalone = "(none — standalone server)"
+name_placeholder   = "Island"
+custom_level_label = "Custom level name…"
+rcon_placeholder   = "required for RCON commands"
+field_cluster      = "Cluster"
+field_name         = "Server Name"
+field_name_hint    = "unique within the cluster"
+field_map          = "Map"
+field_level        = "Level Name"
+field_level_hint   = "ARK internal level name"
+field_install_dir  = "Install Dir"
+field_install_dir_hint = "blank = config default + server name"
+field_game_port    = "Game Port"
+field_query_port   = "Query Port"
+field_rcon_port    = "RCON Port"
+field_rcon_pass    = "RCON Password"
+field_anticheat       = "Enable BattlEye anti-cheat"
+field_anticheat_hint  = "ARK ships with BattlEye on. Uncheck to launch the server with -NoBattlEye (some mods need this)."
+field_mods            = "Mods"
+field_mods_placeholder = "e.g. 928908, 935317, 1029824"
+field_mods_hint       = "Comma-separated CurseForge mod IDs. ARK loads them left to right."
+err_cluster_not_found = "cluster %q not found"
+err_name_level_required = "server name and level name are required"
+err_game_port      = "game port: %v"
+err_query_port     = "query port: %v"
+err_rcon_port      = "rcon port: %v"
+
+# CLUSTER tabs
+
+[cluster.tabs]
+overview = "Overview"
+settings = "Settings"
+schedule = "Schedule"
+
+[cluster.overview]
+button_add_server          = "Add Server"
+button_install_all         = "Install / Update All"
+button_start_all           = "Start All"
+button_stop_all            = "Stop All"
+button_restart_all         = "Restart All"
+button_backup_now          = "Backup Now (cluster)"
+button_manage_backups      = "Manage Backups…"
+button_open_explorer       = "Open in Explorer"
+button_propagate           = "Apply Settings to All Servers"
+button_delete              = "Delete Cluster (and all files)"
+err_busy_for_install       = "server %q is %s — stop everything in this cluster before bulk install"
+confirm_stop_all_title     = "Stop All"
+confirm_stop_all_body      = "Stop every server in this cluster?"
+confirm_restart_all_title  = "Restart All"
+confirm_restart_all_body   = "Restart every server in this cluster?"
+backup_done_title          = "Backup"
+backup_done_body           = "Cluster backup created."
+err_no_dir                 = "cluster has no ClusterDir set"
+confirm_dir_create_title   = "Cluster Directory Not Created Yet"
+confirm_dir_create_body    = "The cluster directory does not exist on disk yet:\n  %s\n\nARK creates this folder on the first cross-server transfer (uploading or downloading a survivor, dino, or item between two servers in this cluster). Until that happens there are no files to view.\n\nCreate the empty folder now and open it?"
+confirm_apply_title        = "Apply Settings"
+confirm_apply_body         = "Write the cluster's effective settings to every server's Game.ini and GameUserSettings.ini?"
+apply_done_title           = "Apply Settings"
+apply_done_body            = "Settings written to disk."
+err_busy_for_delete        = "server %q is %s — stop every server in this cluster before deleting"
+confirm_delete_title       = "Delete Cluster"
+confirm_delete_body        = "Delete cluster %q?\n\nThis will:\n  • Remove the cluster and %d server(s) from this app\n  • Delete the cluster directory:\n      %s\n  • Delete every server install directory:\n%s\n  • Delete every per-server log file\n\nThis cannot be undone."
+delete_no_servers          = "    (no member servers)"
+row_cluster_id             = "Cluster ID:"
+row_cluster_dir            = "Cluster Dir:"
+row_settings_overridden    = "Settings overridden:"
+row_settings_count         = "%d keys"
+
+[cluster.settings]
+header                     = "Cluster Settings — base values inherited by every server in %q. Per-server tabs override these. (%d non-default keys)"
+active_event_label         = "Active Event:"
+mods_label                 = "Mods (cluster-wide):"
+mods_hint                  = "Comma-separated CurseForge mod IDs loaded by every server in this cluster, before any server-specific mods."
+empty_custom_lines         = "No custom lines yet — click Add Line. These are appended to the cluster's effective settings on Apply."
+custom_lines_intro         = "Custom INI Lines — for mod settings outside the registry. Stored on the cluster, written to every server's matching .ini."
+button_save                = "Save Cluster Settings"
+button_apply_all           = "Apply to All Servers Now"
+button_save_preset         = "Save as Preset…"
+button_apply_preset        = "Apply Preset…"
+button_manage_presets      = "Manage Presets…"
+button_add_line            = "Add Line"
+add_line_title             = "Add Custom INI Line"
+add_line_confirm           = "Add"
+field_file                 = "File"
+field_section              = "Section"
+field_section_placeholder  = "e.g. /script/shootergame.shootergamemode"
+field_key                  = "Key"
+field_key_placeholder      = "e.g. CustomModSetting"
+field_value                = "Value"
+field_value_placeholder    = "e.g. 42 or true or some text"
+err_section_key_required   = "section and key are required"
+custom_line_meta           = "[%s]  [%s]  %s = %s"
+per_stat_tab               = "Per-Level Stats"
+custom_lines_tab           = "Custom INI Lines"
+saved_title                = "Cluster Settings"
+saved_body                 = "Saved %d non-default value(s) and %d custom line(s)."
+confirm_apply_settings_body = "Write the cluster's effective settings to every server's Game.ini and GameUserSettings.ini? Per-server overrides are preserved."
+
+# SERVER tabs
+
+[server.tabs]
+overview = "Overview"
+settings = "Settings"
+players  = "Players"
+logs     = "Logs"
+schedule = "Schedule"
+
+[server.overview]
+status_label              = "Status: %s %s"
+row_cluster_standalone    = "(standalone — no cluster)"
+button_install            = "Install / Update"
+button_start              = "Start"
+button_stop               = "Stop (graceful)"
+button_kill               = "Force Kill"
+button_restart            = "Restart"
+button_write_inis         = "Write .ini files"
+button_write_bat          = "Save start-*.bat"
+button_backup_now         = "Backup Now"
+button_manage_backups     = "Manage Backups…"
+button_open_explorer      = "Open in Explorer"
+button_delete             = "Delete Server (and all files)"
+err_busy_for_install      = "server is %s — stop it before installing"
+confirm_stop_title        = "Stop"
+confirm_stop_body         = "Stop %s gracefully via RCON?"
+confirm_kill_title        = "Force Kill"
+confirm_kill_body         = "Hard-kill %s? Unsaved progress will be lost."
+confirm_restart_title     = "Restart"
+confirm_restart_body      = "Restart %s?"
+inis_done_title           = "Settings"
+inis_done_body            = "Game.ini and GameUserSettings.ini written."
+bat_done_title            = "Batch File"
+bat_done_body             = "Wrote %s"
+backup_done_title         = "Backup"
+backup_done_body          = "Backup created."
+err_no_install_dir        = "server has no InstallDir set"
+confirm_dir_create_title  = "Server Directory Not Created Yet"
+confirm_dir_create_body   = "The server's install directory does not exist on disk yet:\n  %s\n\nThis folder is created when you click Install / Update for the first time, so SteamCMD can populate it with the ASA Dedicated Server files.\n\nCreate the empty folder now and open it?"
+err_busy_for_delete       = "server is %s — stop it before deleting"
+confirm_delete_title      = "Delete Server"
+confirm_delete_body       = "Delete %q?\n\nThis will:\n  • Remove the server from this app\n  • Delete the install directory:\n      %s\n  • Delete the per-server log file\n\nThis cannot be undone."
+row_cluster               = "Cluster:"
+row_cluster_value         = "%s (%s)"
+row_map                   = "Map:"
+row_install_dir           = "Install Dir:"
+row_game_port             = "Game Port:"
+row_query_port            = "Query Port:"
+row_rcon_port             = "RCON Port:"
+
+[server.settings]
+header                    = "Settings — %s. Inherit from cluster, override per server. (%d cluster, %d server overrides)"
+active_event_label        = "Active Event:"
+mods_label                = "Mods (this server):"
+mods_hint                 = "Comma-separated CurseForge mod IDs added by this server."
+mods_hint_with_cluster    = "Comma-separated mod IDs added by this server. Cluster mods load first: %s"
+button_save               = "Save Overrides"
+button_clear              = "Clear All Overrides"
+button_save_preset        = "Save as Preset…"
+button_apply_preset       = "Apply Preset…"
+button_manage_presets     = "Manage Presets…"
+saved_title               = "Settings"
+saved_body                = "Saved %d override(s)."
+confirm_clear_title       = "Clear Overrides"
+confirm_clear_body        = "Reset every setting on this server to inherit from the cluster?"
+err_setting_invalid       = "%s: %v"
+
+# SERVER PLAYERS tab
+
+[server.players]
+header                  = "Online Players — refresh polls the open-sessions table (the tracker auto-updates it every poll interval)."
+empty                   = "No players online."
+button_poll_now         = "Poll Now (RCON)"
+header_name             = "Name"
+header_steam_id         = "Steam ID"
+header_joined           = "Joined"
+
+# SERVER LOGS tab
+
+[server.logs]
+header = "Logs — live tail when the server is running; otherwise the last 64 KB from disk."
+
+# ACTIVE EVENT dropdowns (shared cluster + server)
+
+[active_event]
+cluster_none           = "(none)"
+server_inherit         = "(inherit from cluster)"
+server_inherit_current = "(inherit from cluster) — currently: %s"
+server_clear           = "(none — explicitly clear)"
+
+# PRESET dialogs
+
+[preset]
+name_placeholder        = "e.g. Summer Event Rates"
+desc_placeholder        = "Optional notes about what this preset does."
+event_unchanged         = "(unchanged)"
+event_inherit           = "(inherit)"
+event_empty_inherit     = "(empty / inherit)"
+no_description          = "(no description)"
+
+[preset.save]
+title                   = "Save Preset"
+field_name              = "Name"
+field_description       = "Description"
+preview_header          = "Snapshotting from %s %q (saved state)"
+preview_settings        = "  • settings: %d keys"
+preview_event           = "  • active event: %s"
+err_name_required       = "preset name is required"
+err_empty_payload       = "nothing to save: this scope has no setting overrides and no active event. Make changes and click Save first, then come back here."
+
+[preset.apply]
+title                   = "Apply Preset to %s %q"
+confirm                 = "Apply"
+no_presets_title        = "Apply Preset"
+no_presets_body         = "No presets saved for %s %q yet. Use Save as Preset first."
+field_preset            = "Preset"
+field_restart           = "Restart after applying"
+err_pick                = "pick a preset"
+label                   = "%s  (%d settings, event=%s)"
+
+[preset.manage]
+window_title            = "Presets — %s %q"
+empty                   = "(no presets yet)"
+intro                   = "Saved presets for this scope. Apply via Settings → Apply Preset, or via the scheduler."
+meta                    = "%s — %d settings, event=%s"
+err_load                = "error: %s"
+delete_in_use           = "cannot delete preset %q: still referenced by %d scheduled task(s): %s. Delete or edit those tasks first"
+confirm_delete_title    = "Delete Preset"
+confirm_delete_body     = "Delete preset %q?"
+
+# WEBHOOKS manager
+
+[webhooks]
+window_title             = "Discord Webhooks"
+button_add               = "Add Webhook"
+empty                    = "No webhooks configured. Click Add Webhook."
+scope_global             = "global"
+scope_with_id            = "%s #%d"
+status_on                = "[ON]"
+status_off               = "[off]"
+events_count             = "%d events"
+events_all               = "ALL events"
+meta_line                = "%s  %s · %s"
+button_send_test         = "Send Test"
+test_sent_title          = "Test Sent"
+test_sent_body           = "Discord acknowledged the test message for %s."
+confirm_delete_title     = "Delete Webhook"
+confirm_delete_body      = "Delete webhook %q?"
+
+[webhooks.dialog]
+title_add                = "Add Webhook"
+title_edit               = "Edit Webhook"
+field_name               = "Name"
+field_url                = "URL"
+field_enabled            = "Enabled"
+field_scope              = "Scope"
+field_scope_target       = "Scope target"
+scope_target_placeholder = "(select)"
+events_section_title     = "Events"
+all_events_check         = "Subscribe to ALL events (any new event types added later)"
+section_toggle_label     = "Toggle all in section"
+err_name_url_required    = "name and URL are required"
+err_pick_scope_target    = "pick a %s for scope target"
+err_no_events            = "select at least one event (or check Subscribe to ALL)"
+
+# BACKUP manager
+
+[backup.window]
+title_server   = "Server: %s"
+title_cluster  = "Cluster: %s"
+window_title   = "Backups — %s"
+empty          = "No backups yet — click Backup Now."
+# meta args: timestamp, human-friendly size (e.g. "12.3 MB"), kind, filename
+meta           = "%s   %s   [%s]   %s"
+button_now     = "Backup Now"
+confirm_restore_title  = "Restore Backup"
+confirm_restore_body   = "Restore from %s? This will overwrite current files.\n\nMake sure the server is stopped first."
+restore_done_title     = "Restore Complete"
+restore_done_body      = "Files restored from %s"
+restore_empty_title    = "Nothing to Restore"
+restore_empty_body     = "This backup contained no restorable content. The cluster directory and per-server saves were both empty when the backup was taken."
+confirm_delete_title   = "Delete Backup"
+confirm_delete_body    = "Permanently delete %s?"
+
+# INSTALL progress window (SteamCMD)
+
+[install]
+err_no_steamcmd          = "SteamCMD is not configured — run the wizard or set the path"
+empty_title              = "Install"
+empty_body               = "No servers to install."
+window_title_one         = "ASA install — %s"
+window_title_many        = "ASA Dedicated Server install"
+title_one                = "Installing ASA Dedicated Server (App %d) for %q"
+title_many               = "Installing ASA Dedicated Server (App %d) for %d servers: %s"
+log_cancel_requested     = "--- Cancellation requested ---"
+log_cancelled            = "--- Cancelled ---"
+log_section              = "=== [%d/%d] %s — App ID %d → %s ==="
+log_launching            = "Launching SteamCMD…"
+log_done_section         = "=== [%d/%d] %s — done ==="
+log_all_done             = "\nAll installs complete."
+log_error                = "[error] %v"
+heartbeat_silent         = "(still running, no SteamCMD output for %ds — sometimes silent during downloads)"
+err_steamcmd_failed      = "non-zero SteamCMD exit (see log)"
+
+# UNINSTALL dialog
+
+[uninstall]
+title                = "Full Uninstall"
+intro                = "PERMANENT REMOVAL — every file listed below will be deleted.\nThe app will exit when done. This cannot be undone."
+confirm_first        = "Yes, delete everything"
+confirm_final_title  = "Final Confirmation"
+confirm_final_body   = "Last chance — type 'delete' below in your head and click OK to permanently remove everything listed."
+plan_data_dir        = "Data directory (config, db, logs):\n  %s\n\n"
+plan_steamcmd        = "SteamCMD install:\n  %s\n\n"
+plan_app_home        = "App home directory (default install location):\n  %s\n\n"
+plan_cluster_dirs    = "Cluster directories:\n"
+plan_server_dirs    = "Server install directories:\n"
+
+# ACTIVITY feed (bottom pane, formatted bus events)
+
+[activity]
+header = "Activity"
+
+[activity.event]
+server_starting          = "server #%d %q starting…"
+server_started           = "server #%d %q is up"
+server_stopped           = "server #%d %q stopped"
+server_crashed           = "server #%d %q crashed (exit=%d)"
+server_saved             = "server #%d %q saveworld OK"
+player_joined            = "[srv %d] %s (%s) joined"
+player_left              = "[srv %d] %s left"
+player_banned            = "[srv %d] %s banned: %s"
+backup_completed         = "backup -> %s (%d bytes)"
+backup_failed            = "backup failed: %s"
+server_backup_restored   = "server #%d %q restored from %s"
+cluster_backup_restored  = "cluster #%d %q restored from %s"
+server_created           = "server #%d %q created (map: %s)"
+server_deleted           = "server #%d %q deleted"
+server_install_started   = "server #%d %q install/update started"
+cluster_created          = "cluster #%d %q created (ARK id: %s)"
+cluster_deleted          = "cluster #%d %q deleted"
+cluster_settings_changed = "cluster #%d %q settings changed (%d keys)"
+cluster_settings_saved   = "cluster #%d %q settings saved (%d keys)"
+cluster_settings_applied = "cluster #%d %q settings written to all servers"
+cluster_install_all      = "cluster #%d %q bulk install/update for %d server(s)"
+cluster_install_finished = "cluster #%d %q bulk install finished: %d ok, %d failed"
+server_install_done      = "server #%d %q install/update finished"
+server_install_failed    = "server #%d %q install/update FAILED: %s"
+server_settings_changed  = "server #%d %q overrides changed (%d keys)"
+server_settings_saved    = "server #%d %q overrides saved (%d keys)"
+
+# SETTINGS GRID (per-stat editor)
+
+[settings.grid]
+header_stat = "Stat"
+
+# SETTINGS LOCALE picker (App Preferences)
+
+[settings.locale]
+section_header           = "Localization"
+picker_label             = "Language"
+restart_note             = "Changes take effect on the next launch."
+saved_info               = "Language preference saved. Restart the app to apply."
+
+# SCHEDULER (Schedule tab + dialogs)
+
+[scheduler]
+tab_header               = "Scheduled tasks for %s — %s. Cron tasks repeat and oneshots fire once"
+empty                    = "No scheduled tasks yet — click Add Task."
+button_add_task          = "Add Task"
+button_schedule_event    = "Schedule Event…"
+button_debug_engine      = "Debug Engine"
+button_open_logs_folder  = "Open Logs Folder"
+row_status_on            = "[ON]"
+row_status_off           = "[OFF]"
+row_next_none            = "next: —"
+row_next_at              = "next: %s"
+row_meta                 = "%s  %s — %s — %s — %s"
+row_oneshot_at           = "oneshot @ %s"
+row_cron                 = "cron `%s`"
+button_run_now           = "Run Now"
+button_disable           = "Disable"
+button_enable            = "Enable"
+button_history           = "History"
+delete_confirm_title     = "Delete Task"
+delete_confirm_body      = "Delete scheduled task %q?"
+
+[scheduler.history]
+window_title             = "Run history — %s"
+header                   = "Most recent 50 runs"
+empty                    = "(no runs yet)"
+error                    = "error: %s"
+
+[scheduler.dialog]
+title_create             = "Schedule Task"
+title_edit               = "Edit Task"
+confirm_create           = "Create"
+confirm_save             = "Save"
+
+field_name               = "Name"
+field_name_placeholder   = "e.g. Nightly restart"
+field_trigger            = "Trigger"
+field_oneshot_when       = "When (oneshot)"
+field_oneshot_placeholder = "YYYY-MM-DD HH:MM[:SS] (local)"
+field_cron               = "Cron expression"
+field_cron_placeholder   = "0 4 * * *  (5 fields: min hour dom month dow)"
+field_cron_hint          = "Examples:  0 4 * * *  = 04:00 daily   |   */15 * * * *  = every 15 min   |   0 */6 * * *  = every 6h"
+field_missed_policy      = "Missed-fire policy"
+field_action             = "Action"
+field_stagger            = "Stagger seconds (cluster ops, 0 = use default)"
+field_drain              = "Drain warning minutes (not applied yet)"
+field_broadcast          = "Broadcast message"
+field_broadcast_placeholder = "Server restart in 10 minutes"
+field_preset             = "Preset (apply_preset)"
+field_preset_restart     = "Restart after applying"
+field_stop_options       = "Stop options"
+field_graceful           = "Graceful (RCON saveworld + clean shutdown)"
+
+preview_initial          = "(set fields to see preview)"
+preview_oneshot          = "Will fire at: %s (in %s)"
+preview_cron             = "Next fire: %s (in %s)"
+preview_error            = "preview: %s"
+preview_invalid_cron     = "preview: invalid cron"
+
+err_name_required        = "name is required"
+err_oneshot_format       = "oneshot time %q: expected YYYY-MM-DD HH:MM or YYYY-MM-DD HH:MM:SS"
+err_cron_required        = "cron expression is required"
+err_cron_parse           = "cron: %v"
+err_unsupported_trigger  = "unsupported trigger %q"
+err_apply_preset_pick    = "apply_preset: pick a preset (or save one first under Settings -> Save as Preset)"
+err_apply_preset_missing = "apply_preset: preset_id missing"
+err_broadcast_required   = "broadcast message is required"
+err_unknown_action       = "unknown action %q"
+
+[scheduler.event]
+button_open              = "Schedule Event…"
+need_two_presets         = "This scope (%s %q) needs at least two presets to schedule an event (one for the event period, one to revert). Save them under Settings -> Save as Preset."
+title                    = "Schedule Event"
+confirm                  = "Create"
+field_event_name         = "Event name"
+field_event_placeholder  = "e.g. Summer Bash 2026"
+field_starts_at          = "Starts at"
+field_ends_at            = "Ends at"
+field_on_start_preset    = "On-start preset"
+field_on_end_preset      = "On-end preset"
+field_restart_each       = "Restart on each apply (recommended)"
+field_stagger_cluster    = "Stagger seconds (cluster only)"
+
+err_event_name_required  = "event name is required"
+err_start_parse          = "start: %v"
+err_end_parse            = "end: %v"
+err_end_before_start     = "end must be strictly after start"
+err_pick_start_preset    = "pick an on-start preset"
+err_pick_end_preset      = "pick an on-end preset"
+err_presets_must_differ  = "on-start and on-end presets must differ otherwise the event would be a no-op"
+err_create_start         = "create start task: %v"
+err_create_end           = "create end task: %v"
+created_info             = "Created %q — start and end. Edit either via the task list."
+
+[scheduler.debug]
+window_title             = "Scheduler Engine — Debug"
+header                   = "Per-task state as seen by the engine. Compare 'next_fire' (UTC) to 'now' (UTC)."
+now_local                = "now (local): %s"
+now_utc                  = "now (UTC):   %s"
+tz                       = "TZ:          %s   (UTC%s%02d:%02d)"
+no_tasks                 = "(no tasks at all)"
+total_count              = "%d tasks total"
+task_header              = "#%d  %s   [%s]   scope=%s/%d   trigger=%s   action=%s   missed=%s"
+task_cron                = "    cron: %q"
+task_start_at            = "    start_at:    %s   (UTC: %s)"
+task_next_fire           = "    next_fire:   %s   (UTC: %s)   [%s, in %v]"
+task_next_fire_null      = "    next_fire:   <NULL>  (engine will skip)"
+task_last_fired          = "    last_fired:  %s"
+status_due_now           = "DUE NOW (overdue by %s)"
+status_future            = "in the future"
+duration_past            = "in the past"
+duration_seconds         = "%ds"
+duration_minutes         = "%dm"
+duration_hours           = "%dh%dm"
+duration_days            = "%dd%dh"
