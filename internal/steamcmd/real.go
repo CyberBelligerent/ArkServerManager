@@ -27,10 +27,11 @@ var DownloadURL = "https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip
 var _ Runner = (*RealRunner)(nil)
 
 type RealRunner struct {
-	mu         sync.Mutex
-	path       string
-	httpClient *http.Client
+	mu          sync.Mutex
+	path        string
+	httpClient  *http.Client
 	bootstrapFn func(ctx context.Context) error
+	progressFn  func(string)
 }
 
 func New() *RealRunner {
@@ -55,6 +56,21 @@ func (r *RealRunner) SetPath(p string) {
 	r.mu.Lock()
 	r.path = p
 	r.mu.Unlock()
+}
+
+func (r *RealRunner) SetProgress(fn func(string)) {
+	r.mu.Lock()
+	r.progressFn = fn
+	r.mu.Unlock()
+}
+
+func (r *RealRunner) progress(msg string) {
+	r.mu.Lock()
+	fn := r.progressFn
+	r.mu.Unlock()
+	if fn != nil {
+		fn(msg)
+	}
 }
 
 func (r *RealRunner) Detect(_ context.Context) (string, error) {
@@ -94,15 +110,24 @@ func (r *RealRunner) Install(ctx context.Context, installDir string) error {
 	target := filepath.Join(installDir, executableName())
 	if fileExists(target) {
 		r.SetPath(target)
+		if r.isBootstrapped() {
+			return nil
+		}
+		
+		if err := r.bootstrapFn(ctx); err != nil {
+			return fmt.Errorf("bootstrap steamcmd: %w", err)
+		}
 		return nil
 	}
 	if runtime.GOOS != "windows" {
 		return errors.New("steamcmd auto-install is implemented for Windows only; install steamcmd manually on this platform")
 	}
+	r.progress("Downloading SteamCMD…")
 	body, err := r.download(ctx, DownloadURL)
 	if err != nil {
 		return err
 	}
+	r.progress("Extracting SteamCMD…")
 	if err := extractZip(body, installDir); err != nil {
 		return fmt.Errorf("extract steamcmd: %w", err)
 	}
@@ -110,20 +135,58 @@ func (r *RealRunner) Install(ctx context.Context, installDir string) error {
 		return fmt.Errorf("steamcmd executable missing after extract: %s", target)
 	}
 	r.SetPath(target)
-	
-	// Fix for issue 1 - SteamCMD not bootstrapped
+
 	if err := r.bootstrapFn(ctx); err != nil {
 		return fmt.Errorf("bootstrap steamcmd: %w", err)
 	}
 	return nil
 }
 
+// bootstrap brings a freshly-extracted SteamCMD to a usable state
+// runs +quit and then a second pass to warm up configuration
 func (r *RealRunner) bootstrap(ctx context.Context) error {
-	cmd := exec.CommandContext(ctx, r.Path(), "+quit")
-	if err := cmd.Run(); err != nil && !isBenignExit(err) {
-		return err
+	runQuit := func() {
+		cmd := exec.CommandContext(ctx, r.Path(), "+quit")
+		_ = cmd.Run()
 	}
+	r.progress("First-run setup, pass 1/2 (this may take a minute)…")
+	runQuit()
+	if !r.isBootstrapped() {
+		r.progress("First-run setup, pass 2/2…")
+		runQuit()
+	}
+	if !r.isBootstrapped() {
+		return fmt.Errorf("steamcmd bootstrap did not complete: missing %s after self-update (run steamcmd manually to diagnose)", r.bootstrapMarkerPath())
+	}
+
+	r.progress("Warming SteamCMD app cache…")
+	cmd := exec.CommandContext(ctx, r.Path(),
+		"+login", "anonymous",
+		"+app_info_update", "1",
+		"+quit")
+	if err := cmd.Run(); err != nil && !isBenignExit(err) {
+		r.progress(fmt.Sprintf("Cache warm-up returned %v (continuing).", err))
+	}
+	r.progress("SteamCMD ready.")
 	return nil
+}
+
+// isBootstrapped reports whether SteamCMD has finished downloading its support files
+func (r *RealRunner) isBootstrapped() bool {
+	marker := r.bootstrapMarkerPath()
+	return marker != "" && fileExists(marker)
+}
+
+func (r *RealRunner) bootstrapMarkerPath() string {
+	p := r.Path()
+	if p == "" {
+		return ""
+	}
+	dir := filepath.Dir(p)
+	if runtime.GOOS == "windows" {
+		return filepath.Join(dir, "steamerrorreporter.exe")
+	}
+	return filepath.Join(dir, "linux32", "steamcmd")
 }
 
 func (r *RealRunner) download(ctx context.Context, url string) ([]byte, error) {
@@ -177,6 +240,7 @@ func (r *RealRunner) installAppPipe(ctx context.Context, appID int, installDir s
 	args := []string{
 		"+force_install_dir", installDir,
 		"+login", "anonymous",
+		"+app_info_update", "1",
 		"+app_update", strconv.Itoa(appID),
 	}
 	if validate {
@@ -206,7 +270,7 @@ func (r *RealRunner) installAppPipe(ctx context.Context, appID int, installDir s
 		wg.Wait()
 		if err := cmd.Wait(); err != nil {
 			if isBenignExit(err) {
-				out <- "[note] SteamCMD exited with code 7 — benign on Windows; install completed."
+				out <- "[note] SteamCMD self-update finished (non-zero exit is normal on Windows)."
 			} else {
 				out <- fmt.Sprintf("[exit] %v", err)
 			}
@@ -335,7 +399,7 @@ func isBenignExit(err error) bool {
 	var ee *exec.ExitError
 	if errors.As(err, &ee) {
 		switch ee.ExitCode() {
-		case 7:
+		case 7, 8:
 			return true
 		}
 	}

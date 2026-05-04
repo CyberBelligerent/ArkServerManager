@@ -27,6 +27,7 @@ func (r *RealRunner) installAppPTY(ctx context.Context, appID int, installDir st
 	args := []string{
 		"+force_install_dir", `"` + installDir + `"`,
 		"+login", "anonymous",
+		"+app_info_update", "1",
 		"+app_update", strconv.Itoa(appID),
 	}
 	if validate {
@@ -62,8 +63,8 @@ func (r *RealRunner) installAppPTY(ctx context.Context, appID int, installDir st
 		switch {
 		case waitErr != nil:
 			out <- fmt.Sprintf("[exit] %v", waitErr)
-		case code == 7:
-			out <- "[note] SteamCMD exited with code 7 — benign on Windows; install completed."
+		case code == 7 || code == 8:
+			out <- "[note] SteamCMD self-update finished (non-zero exit is normal on Windows)."
 		case code != 0:
 			out <- fmt.Sprintf("[exit] code %d", code)
 		}

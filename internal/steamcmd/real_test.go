@@ -82,6 +82,20 @@ func TestInstall_SkipsIfPresent(t *testing.T) {
 	if err := os.WriteFile(target, []byte("existing"), 0o755); err != nil {
 		t.Fatal(err)
 	}
+	// Drop the bootstrap marker so Install treats this dir as already
+	// fully set up and skips the bootstrap step.
+	if runtime.GOOS == "windows" {
+		if err := os.WriteFile(filepath.Join(tmp, "steamerrorreporter.exe"), []byte{}, 0o755); err != nil {
+			t.Fatal(err)
+		}
+	} else {
+		if err := os.MkdirAll(filepath.Join(tmp, "linux32"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(tmp, "linux32", "steamcmd"), []byte{}, 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
 	r := New()
 	if err := r.Install(context.Background(), tmp); err != nil {
 		t.Fatalf("Install: %v", err)
@@ -159,6 +173,27 @@ func TestInstall_BootstrapsAfterExtract(t *testing.T) {
 	}
 	if called != 1 {
 		t.Errorf("bootstrap called %d times, want 1", called)
+	}
+}
+
+func TestIsBootstrapped_WindowsMarker(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("marker file is platform-specific; this test covers the Windows path")
+	}
+	tmp := t.TempDir()
+	exe := filepath.Join(tmp, executableName())
+	if err := os.WriteFile(exe, []byte{}, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	r := NewWithPath(exe)
+	if r.isBootstrapped() {
+		t.Fatal("fresh dir should not be marked bootstrapped")
+	}
+	if err := os.WriteFile(filepath.Join(tmp, "steamerrorreporter.exe"), []byte{}, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if !r.isBootstrapped() {
+		t.Fatal("dir with steamerrorreporter.exe should be marked bootstrapped")
 	}
 }
 

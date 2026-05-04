@@ -1,18 +1,4 @@
 -- Allow servers to exist outside any cluster (cluster_id NULL).
---
--- SQLite can't drop a NOT NULL constraint in place, so this follows
--- the standard "12-step" table-modification recipe: recreate the
--- table with the new schema, copy data, drop the old, rename, then
--- restore indexes. The CASCADE-on-cluster-delete behavior is
--- preserved so deleting a cluster still wipes its member servers
--- (standalone servers have NULL cluster_id and are unaffected by
--- any cluster deletion).
---
--- The unique index on (cluster_id, name) keeps its original semantics
--- inside a cluster. Standalone servers (cluster_id = NULL) all sort
--- into SQLite's "every NULL is distinct" bucket, which means multiple
--- standalones can share a name. That's intentional for v1; if it
--- becomes a problem we can add a partial index later.
 
 CREATE TABLE servers_new (
     id                       INTEGER PRIMARY KEY AUTOINCREMENT,
