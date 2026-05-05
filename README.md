@@ -4,6 +4,13 @@ A pure-Go desktop application for managing **ARK: Survival Ascended**
 dedicated servers on Windows. Features Cluster setup or standalone server.
 
 ---
+## Pictures
+| C1 | C2 | C3 |
+| --- | --- | --- |
+| ![Main Window](screenshots/1.%20Main%20Window.png) | ![Install Wizard](screenshots/2.%20A%20Phase%201%20Wizard.png) | ![Install Wizard](screenshots/2.%20B%20Phase%206%20Wizard.png) |
+| ![Clsuter](screenshots/3.%20Cluster%20Settings.png) | ![Scheduler](screenshots/4.%20Scheduler.png) | ![Webhooks](screenshots/5.%20Webhooks.png) |
+| ![Discord](screenshots/6.%20Webhook_Discord.png) | ![Installing](screenshots/7.%20UpdatingInstalling%20Server.png) | ![Backups](screenshots/8.%20Backup%20Manager.png) |
+
 ## Known Issues
 - Logs won't show historical logs of a server after run, only displaying a ready state (Looking to fix)
 - RCON randomly doesn't connect (Temporary fix in commit: https://github.com/CyberBelligerent/ArkServerManager/commit/2aad5b645ffb30600db69c1d008a986cbf0ae717. Looking more into this)
