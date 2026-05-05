@@ -4,6 +4,11 @@ A pure-Go desktop application for managing **ARK: Survival Ascended**
 dedicated servers on Windows. Features Cluster setup or standalone server.
 
 ---
+## Known Issues
+- Logs won't show historical logs of a server after run, only displaying a ready state (Looking to fix)
+- RCON randomly doesn't connect (Temporary fix in commit: https://github.com/CyberBelligerent/ArkServerManager/commit/2aad5b645ffb30600db69c1d008a986cbf0ae717. Looking more into this)
+- SteamCMD not fully ready when first running a server (Run Update / Install again and it'll work) (FIXED: Commit https://github.com/CyberBelligerent/ArkServerManager/commit/68974fc38aacc789487068ca2323e75665c23c9b)
+- Block gameanalytics.com floods your logs with errors attempting to connect (Benign) (FIXED: https://github.com/CyberBelligerent/ArkServerManager/commit/fa66b1dd0eac66a986ffcc6abcef5a49adb85e85)
 
 ## Features
 
