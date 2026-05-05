@@ -177,6 +177,9 @@ func (a *App) showNewServerDialog(preselectedCluster *cluster.Cluster) {
 	rconEntry := widget.NewEntry()
 	rconEntry.SetText(fmt.Sprintf("%d", suggested.RCON))
 
+	rconEnabledCheck := widget.NewCheck("", nil)
+	rconEnabledCheck.SetChecked(true)
+
 	rconPwdEntry := widget.NewPasswordEntry()
 	rconPwdEntry.SetPlaceHolder(a.T("newserver.rcon_placeholder"))
 
@@ -208,6 +211,7 @@ func (a *App) showNewServerDialog(preselectedCluster *cluster.Cluster) {
 			{Text: a.T("newserver.field_game_port"), Widget: gameEntry},
 			{Text: a.T("newserver.field_query_port"), Widget: queryEntry},
 			{Text: a.T("newserver.field_rcon_port"), Widget: rconEntry},
+			{Text: a.T("newserver.field_rcon_enabled"), Widget: rconEnabledCheck, HintText: a.T("newserver.field_rcon_enabled_hint")},
 			{Text: a.T("newserver.field_rcon_pass"), Widget: rconPwdEntry},
 			{Text: a.T("newserver.field_server_pass"), Widget: serverPwdEntry, HintText: a.T("newserver.field_server_pass_hint")},
 			{Text: a.T("newserver.field_max_players"), Widget: maxPlayersEntry, HintText: a.T("newserver.field_max_players_hint")},
@@ -259,13 +263,18 @@ func (a *App) showNewServerDialog(preselectedCluster *cluster.Cluster) {
 			}
 			maxPlayers = n
 		}
+		rconPwd := strings.TrimSpace(rconPwdEntry.Text)
+		if rconEnabledCheck.Checked && rconPwd == "" {
+			rconPwd = server.GenerateRCONPassword()
+		}
 		s := server.Server{
 			ClusterID:        c.ID, // 0 if standalone
 			Name:             name,
 			Map:              level,
 			InstallDir:       dir,
 			Ports:            ports,
-			RCONPassword:     rconPwdEntry.Text,
+			RCONEnabled:      rconEnabledCheck.Checked,
+			RCONPassword:     rconPwd,
 			ServerPassword:   serverPwdEntry.Text,
 			MaxPlayers:       maxPlayers,
 			AnticheatEnabled: anticheatCheck.Checked,

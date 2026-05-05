@@ -144,6 +144,7 @@ func setupSupervisor(t *testing.T, sp Spawner, rc *stubRCON) (*RealSupervisor, *
 		Map:          "TheIsland_WP",
 		InstallDir:   t.TempDir(),
 		Ports:        DefaultBase,
+		RCONEnabled:  true,
 		RCONPassword: "rcon-pw",
 	})
 	if err != nil {

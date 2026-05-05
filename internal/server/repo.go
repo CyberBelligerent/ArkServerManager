@@ -38,13 +38,13 @@ func (r *Repo) Create(ctx context.Context, s Server) (Server, error) {
 	res, err := r.db.ExecContext(ctx, `
 		INSERT INTO servers(
 			cluster_id, name, map, install_dir,
-			port, query_port, rcon_port, rcon_password,
+			port, query_port, rcon_port, rcon_password, rcon_enabled,
 			server_password, max_players,
 			settings_overrides_json, active_mods_json, active_event,
 			anticheat_enabled, status
-		) VALUES (?,?,?,?, ?,?,?,?, ?,?, ?,?,?, ?,?)`,
+		) VALUES (?,?,?,?, ?,?,?,?,?, ?,?, ?,?,?, ?,?)`,
 		nullableClusterID(s.ClusterID), s.Name, s.Map, s.InstallDir,
-		s.Ports.Game, s.Ports.Query, s.Ports.RCON, s.RCONPassword,
+		s.Ports.Game, s.Ports.Query, s.Ports.RCON, s.RCONPassword, boolToInt(s.RCONEnabled),
 		s.ServerPassword, s.MaxPlayers,
 		overridesJSON, modsJSON, s.ActiveEvent,
 		boolToInt(s.AnticheatEnabled), string(s.Status))
@@ -102,13 +102,13 @@ func (r *Repo) Update(ctx context.Context, s Server) error {
 	res, err := r.db.ExecContext(ctx, `
 		UPDATE servers SET
 			cluster_id = ?, name = ?, map = ?, install_dir = ?,
-			port = ?, query_port = ?, rcon_port = ?, rcon_password = ?,
+			port = ?, query_port = ?, rcon_port = ?, rcon_password = ?, rcon_enabled = ?,
 			server_password = ?, max_players = ?,
 			settings_overrides_json = ?, active_mods_json = ?, active_event = ?,
 			anticheat_enabled = ?, status = ?
 		WHERE id = ?`,
 		nullableClusterID(s.ClusterID), s.Name, s.Map, s.InstallDir,
-		s.Ports.Game, s.Ports.Query, s.Ports.RCON, s.RCONPassword,
+		s.Ports.Game, s.Ports.Query, s.Ports.RCON, s.RCONPassword, boolToInt(s.RCONEnabled),
 		s.ServerPassword, s.MaxPlayers,
 		overridesJSON, modsJSON, s.ActiveEvent,
 		boolToInt(s.AnticheatEnabled), string(s.Status),
@@ -186,7 +186,7 @@ func (r *Repo) SuggestPortsFromDB(ctx context.Context) (PortTriple, error) {
 }
 
 const baseSelect = `SELECT id, cluster_id, name, map, install_dir,
-	port, query_port, rcon_port, rcon_password,
+	port, query_port, rcon_port, rcon_password, rcon_enabled,
 	server_password, max_players,
 	settings_overrides_json, active_mods_json, active_event,
 	anticheat_enabled, status, created_at FROM servers`
@@ -202,12 +202,13 @@ func scanServer(row rowScanner) (Server, error) {
 		overridesJSON string
 		modsJSON      string
 		anticheatInt  int
+		rconEnInt     int
 		statusStr     string
 		createdAt     time.Time
 	)
 	err := row.Scan(
 		&s.ID, &clusterID, &s.Name, &s.Map, &s.InstallDir,
-		&s.Ports.Game, &s.Ports.Query, &s.Ports.RCON, &s.RCONPassword,
+		&s.Ports.Game, &s.Ports.Query, &s.Ports.RCON, &s.RCONPassword, &rconEnInt,
 		&s.ServerPassword, &s.MaxPlayers,
 		&overridesJSON, &modsJSON, &s.ActiveEvent,
 		&anticheatInt, &statusStr, &createdAt,
@@ -222,6 +223,7 @@ func scanServer(row rowScanner) (Server, error) {
 		s.ClusterID = clusterID.Int64
 	}
 	s.AnticheatEnabled = anticheatInt != 0
+	s.RCONEnabled = rconEnInt != 0
 	s.Status = Status(statusStr)
 	s.CreatedAt = createdAt
 

@@ -9,10 +9,11 @@ import (
 
 func TestBuildLaunchCommand_BasicChain(t *testing.T) {
 	s := Server{
-		Name:       "Island",
-		Map:        "TheIsland_WP",
-		InstallDir: `C:\servers\Island`,
-		Ports:      DefaultBase,
+		Name:        "Island",
+		Map:         "TheIsland_WP",
+		InstallDir:  `C:\servers\Island`,
+		Ports:       DefaultBase,
+		RCONEnabled: true,
 	}
 	cmd := BuildLaunchCommand(s, LaunchOptions{
 		ClusterID:  "solo-001",
@@ -66,6 +67,7 @@ func TestBuildLaunchCommand_ModsAndPasswords(t *testing.T) {
 		Map:          "M",
 		InstallDir:   "D",
 		Ports:        DefaultBase,
+		RCONEnabled:  true,
 		RCONPassword: "rcon-fallback",
 	}
 	cmd := BuildLaunchCommand(s, LaunchOptions{
@@ -190,13 +192,37 @@ func TestResolveActiveEvent(t *testing.T) {
 }
 
 func TestBuildLaunchCommand_AdminPasswordExplicitWins(t *testing.T) {
-	s := Server{Name: "X", Map: "M", InstallDir: "D", Ports: DefaultBase, RCONPassword: "fallback"}
+	s := Server{Name: "X", Map: "M", InstallDir: "D", Ports: DefaultBase, RCONEnabled: true, RCONPassword: "fallback"}
 	cmd := BuildLaunchCommand(s, LaunchOptions{ServerAdminPassword: "explicit"})
 	if !strings.Contains(cmd.Args[0], "?ServerAdminPassword=explicit") {
 		t.Errorf("explicit admin password should win: %q", cmd.Args[0])
 	}
 	if strings.Contains(cmd.Args[0], "fallback") {
 		t.Errorf("fallback leaked into chain: %q", cmd.Args[0])
+	}
+}
+
+func TestBuildLaunchCommand_RCONDisabled(t *testing.T) {
+	s := Server{
+		Name:         "X",
+		Map:          "M",
+		InstallDir:   "D",
+		Ports:        DefaultBase,
+		RCONEnabled:  false,
+		RCONPassword: "should-not-leak",
+	}
+	cmd := BuildLaunchCommand(s, LaunchOptions{ServerAdminPassword: "also-not"})
+	chain := cmd.Args[0]
+	for _, banned := range []string{
+		"RCONEnabled=True",
+		"RCONPort=",
+		"ServerAdminPassword=",
+		"should-not-leak",
+		"also-not",
+	} {
+		if strings.Contains(chain, banned) {
+			t.Errorf("disabled RCON should omit %q from chain: %q", banned, chain)
+		}
 	}
 }
 

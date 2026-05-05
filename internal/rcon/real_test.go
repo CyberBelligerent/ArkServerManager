@@ -97,6 +97,137 @@ func TestRCON_BadPassword(t *testing.T) {
 	}
 }
 
+func TestRCON_ASAExec_NoMarkerEcho(t *testing.T) {
+	addr := fakeServer(t, func(conn net.Conn) {
+		for {
+			p, err := readPacket(conn)
+			if err != nil {
+				return
+			}
+			switch p.Type {
+			case typeAuth:
+				_ = (packet{ID: p.ID, Type: typeAuthResponse}).encode(conn)
+			case typeExecCommand:
+				_ = (packet{ID: p.ID, Type: typeResponseValue, Body: "0. Alice, 76561198000000001\n"}).encode(conn)
+				// Intentionally do NOT echo the trailing RESPONSE_VALUE
+			}
+		}
+	})
+	host, port := splitHostPort(t, addr)
+	c := New()
+	c.SetTimeout(5 * time.Second) // longer than tailReadTimeout
+	if err := c.Dial(context.Background(), host, port, "secret"); err != nil {
+		t.Fatalf("Dial: %v", err)
+	}
+	defer c.Close()
+	start := time.Now()
+	out, err := c.Exec(context.Background(), "listplayers")
+	elapsed := time.Since(start)
+	if err != nil {
+		t.Fatalf("Exec: %v", err)
+	}
+	if !strings.Contains(out, "Alice") {
+		t.Errorf("Exec body = %q, want it to contain Alice", out)
+	}
+	// Should return shortly after tailReadTimeout, not 5 seconds later
+	if elapsed > 2*time.Second {
+		t.Errorf("Exec took too long without marker echo: %s", elapsed)
+	}
+}
+
+func TestRCON_ASAExec_MismatchedID(t *testing.T) {
+	addr := fakeServer(t, func(conn net.Conn) {
+		for {
+			p, err := readPacket(conn)
+			if err != nil {
+				return
+			}
+			switch p.Type {
+			case typeAuth:
+				_ = (packet{ID: p.ID, Type: typeAuthResponse}).encode(conn)
+			case typeExecCommand:
+				// Reply with an unrelated ID
+				_ = (packet{ID: 9999, Type: typeResponseValue, Body: "No Players Connected\n"}).encode(conn)
+			}
+		}
+	})
+	host, port := splitHostPort(t, addr)
+	c := New()
+	c.SetTimeout(5 * time.Second)
+	if err := c.Dial(context.Background(), host, port, "secret"); err != nil {
+		t.Fatalf("Dial: %v", err)
+	}
+	defer c.Close()
+	out, err := c.Exec(context.Background(), "listplayers")
+	if err != nil {
+		t.Fatalf("Exec: %v", err)
+	}
+	if !strings.Contains(out, "No Players Connected") {
+		t.Errorf("Exec body = %q, want it to contain 'No Players Connected'", out)
+	}
+}
+
+func TestRCON_Exec_RedialsOnStaleConn(t *testing.T) {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = ln.Close() })
+
+	connNum := 0
+	go func() {
+		for {
+			conn, err := ln.Accept()
+			if err != nil {
+				return
+			}
+			connNum++
+			n := connNum
+			go func(conn net.Conn, n int) {
+				defer conn.Close()
+				for {
+					p, err := readPacket(conn)
+					if err != nil {
+						return
+					}
+					switch p.Type {
+					case typeAuth:
+						_ = (packet{ID: p.ID, Type: typeAuthResponse}).encode(conn)
+						if n == 1 {
+							// Simulate ASA idle-closing the first conn
+							return
+						}
+					case typeExecCommand:
+						_ = (packet{ID: p.ID, Type: typeResponseValue, Body: "after-redial"}).encode(conn)
+					}
+				}
+			}(conn, n)
+		}
+	}()
+
+	host, port := splitHostPort(t, ln.Addr().String())
+	c := New()
+	c.SetTimeout(3 * time.Second)
+	if err := c.Dial(context.Background(), host, port, "secret"); err != nil {
+		t.Fatalf("Dial: %v", err)
+	}
+	defer c.Close()
+
+	// Drop a connection
+	time.Sleep(100 * time.Millisecond)
+
+	out, err := c.Exec(context.Background(), "listplayers")
+	if err != nil {
+		t.Fatalf("Exec: %v", err)
+	}
+	if !strings.Contains(out, "after-redial") {
+		t.Errorf("Exec body = %q, want it to contain 'after-redial'", out)
+	}
+	if connNum < 2 {
+		t.Errorf("expected redial (connNum >= 2), got %d", connNum)
+	}
+}
+
 func TestRCON_ExecRequiresConnection(t *testing.T) {
 	c := New()
 	if _, err := c.Exec(context.Background(), "saveworld"); err == nil {

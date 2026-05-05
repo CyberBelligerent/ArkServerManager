@@ -1,11 +1,21 @@
 package server
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"time"
 
 	"asamanager/internal/settings"
 )
+
+func GenerateRCONPassword() string {
+	var buf [12]byte
+	if _, err := rand.Read(buf[:]); err != nil {
+		return fmt.Sprintf("rcon%016x", time.Now().UnixNano())
+	}
+	return hex.EncodeToString(buf[:])
+}
 
 type ModRef struct {
 	CurseForgeID int
@@ -42,6 +52,7 @@ type Server struct {
 	Map              string // ARK level name, e.g. TheIsland_WP
 	InstallDir       string
 	Ports            PortTriple
+	RCONEnabled      bool   // when false, the manager loses player tracking, graceful stop, and the RCON tab
 	RCONPassword     string
 	ServerPassword   string // optional player join password; empty = open
 	MaxPlayers       int    // 0 = leave at ASA default (currently 70)

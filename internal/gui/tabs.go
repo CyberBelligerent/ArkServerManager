@@ -651,6 +651,30 @@ func (t *detailTabs) serverSettings(c cluster.Cluster, s server.Server) fyne.Can
 	serverPwdEntry.SetPlaceHolder(t.app.T("newserver.server_pass_placeholder"))
 	serverPwdEntry.SetText(s.ServerPassword)
 
+	rconPwdEntry := widget.NewPasswordEntry()
+	rconPwdEntry.SetPlaceHolder(t.app.T("newserver.rcon_placeholder"))
+	rconPwdEntry.SetText(s.RCONPassword)
+	rconGenBtn := widget.NewButton(t.app.T("server.settings.rcon_generate"), func() {
+		rconPwdEntry.SetText(server.GenerateRCONPassword())
+	})
+	rconEnabledCheck := widget.NewCheck(t.app.T("newserver.field_rcon_enabled"), nil)
+	rconEnabledCheck.SetChecked(s.RCONEnabled)
+	rconDisabledWarn := widget.NewLabelWithStyle(t.app.T("server.settings.rcon_disabled_warn"), fyne.TextAlignLeading, fyne.TextStyle{Italic: true})
+	rconDisabledWarn.Wrapping = fyne.TextWrapWord
+	applyRCONState := func() {
+		if rconEnabledCheck.Checked {
+			rconPwdEntry.Enable()
+			rconGenBtn.Enable()
+			rconDisabledWarn.Hide()
+		} else {
+			rconPwdEntry.Disable()
+			rconGenBtn.Disable()
+			rconDisabledWarn.Show()
+		}
+	}
+	rconEnabledCheck.OnChanged = func(bool) { applyRCONState() }
+	applyRCONState()
+
 	maxPlayersEntry := widget.NewEntry()
 	maxPlayersEntry.SetText(strconv.Itoa(s.MaxPlayers))
 
@@ -718,10 +742,17 @@ func (t *detailTabs) serverSettings(c cluster.Cluster, s server.Server) fyne.Can
 			}
 			mp = n
 		}
+		rconPwd := strings.TrimSpace(rconPwdEntry.Text)
+		if rconEnabledCheck.Checked && rconPwd == "" {
+			rconPwd = server.GenerateRCONPassword()
+			fyne.Do(func() { rconPwdEntry.SetText(rconPwd) })
+		}
 		s.SettingOverrides = newOverrides
 		s.ActiveEvent = eventValueForLabel(serverEventSel.Selected, serverEventLabels, serverEventValues)
 		s.AnticheatEnabled = anticheatCheck.Checked
 		s.ServerPassword = serverPwdEntry.Text
+		s.RCONEnabled = rconEnabledCheck.Checked
+		s.RCONPassword = rconPwd
 		s.MaxPlayers = mp
 		s.ActiveMods = parseModIDs(modsEntry.Text)
 		if err := t.app.deps.Servers.Update(t.app.ctx(), s); err != nil {
@@ -790,8 +821,13 @@ func (t *detailTabs) serverSettings(c cluster.Cluster, s server.Server) fyne.Can
 		widget.NewLabelWithStyle(t.app.T("newserver.field_max_players"), fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 		nil,
 		maxPlayersEntry)
+	rconPassRow := container.NewBorder(nil,
+		widget.NewLabelWithStyle(t.app.T("server.settings.rcon_pass_hint"), fyne.TextAlignLeading, fyne.TextStyle{Italic: true}),
+		widget.NewLabelWithStyle(t.app.T("newserver.field_rcon_pass"), fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+		rconGenBtn,
+		rconPwdEntry)
 
-	top := container.NewVBox(header, eventRow, anticheatCheck, serverPassRow, maxPlayersRow, modsRow, widget.NewSeparator())
+	top := container.NewVBox(header, eventRow, anticheatCheck, rconEnabledCheck, rconDisabledWarn, rconPassRow, serverPassRow, maxPlayersRow, modsRow, widget.NewSeparator())
 
 	return container.NewBorder(
 		top,
@@ -937,7 +973,14 @@ func (t *detailTabs) serverLogs(s server.Server) (fyne.CanvasObject, func()) {
 	logPath := filepath.Join(t.app.deps.DataDir, "logs", fmt.Sprintf("server-%d.log", s.ID))
 	var lines []string
 	if data, err := tailFile(logPath, 64*1024); err == nil && len(data) > 0 {
-		lines = strings.Split(string(data), "\n")
+		raw := strings.Split(string(data), "\n")
+		lines = make([]string, 0, len(raw))
+		for _, ln := range raw {
+			if isServerLogNoise(ln) {
+				continue
+			}
+			lines = append(lines, ln)
+		}
 		if len(lines) > maxLines {
 			lines = lines[len(lines)-maxLines:]
 		}
@@ -979,6 +1022,9 @@ func (t *detailTabs) serverLogs(s server.Server) (fyne.CanvasObject, func()) {
 					case line, ok := <-ch:
 						if !ok {
 							return
+						}
+						if isServerLogNoise(line) {
+							continue
 						}
 						mu.Lock()
 						lines = append(lines, line)

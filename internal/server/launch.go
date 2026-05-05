@@ -60,13 +60,17 @@ func BuildLaunchCommand(s Server, opts LaunchOptions) LaunchCommand {
 		"SessionName=" + sanitizeChainValue(sessionName),
 		fmt.Sprintf("Port=%d", s.Ports.Game),
 		fmt.Sprintf("QueryPort=%d", s.Ports.Query),
-		fmt.Sprintf("RCONPort=%d", s.Ports.RCON),
-		"RCONEnabled=True",
+	}
+	if s.RCONEnabled {
+		chain = append(chain,
+			fmt.Sprintf("RCONPort=%d", s.Ports.RCON),
+			"RCONEnabled=True",
+		)
 	}
 	if opts.ServerPassword != "" {
 		chain = append(chain, "ServerPassword="+sanitizeChainValue(opts.ServerPassword))
 	}
-	if adminPass != "" {
+	if s.RCONEnabled && adminPass != "" {
 		chain = append(chain, "ServerAdminPassword="+sanitizeChainValue(adminPass))
 	}
 	chainArg := strings.Join(chain, "?")
