@@ -1076,6 +1076,18 @@ func modIDs(refs []server.ModRef) []int {
 	return out
 }
 
+// filters telemetry spam out of the logs
+func isServerLogNoise(line string) bool {
+	lower := strings.ToLower(line)
+	if strings.Contains(lower, "gameanalytics") {
+		return true
+	}
+	if strings.Contains(lower, "event queue:") {
+		return true
+	}
+	return false
+}
+
 func tailFile(path string, n int64) ([]byte, error) {
 	f, err := os.Open(path)
 	if err != nil {
