@@ -47,7 +47,6 @@ type wizardState struct {
 
 	SteamCMDPath     string
 	ServerInstallDir string
-	CurseForgeKey    string
 	DiscordWebhook   string
 
 	ClusterName  string
@@ -104,10 +103,8 @@ func (w *wizard) renderStep() {
 	case 2:
 		content = w.stepInstallDir()
 	case 3:
-		content = w.stepCurseForge()
-	case 4:
 		content = w.stepDiscord()
-	case 5:
+	case 4:
 		content = w.stepCluster()
 	default:
 		content = w.stepServer()
@@ -126,7 +123,7 @@ func (w *wizard) renderStep() {
 	}
 }
 
-const wizardLastStep = 6
+const wizardLastStep = 5
 
 func (w *wizard) back() {
 	if w.step > 0 {
@@ -162,7 +159,6 @@ func (w *wizard) finish() {
 		cfg.SteamCMDPath = w.state.SteamCMDPath
 	}
 	cfg.ServerInstallDir = w.state.ServerInstallDir
-	cfg.CurseForgeAPIKey = w.state.CurseForgeKey
 	cfg.Discord.WebhookEnabled = strings.TrimSpace(w.state.DiscordWebhook) != ""
 	cfg.FirstRunDone = true
 	if err := w.app.deps.SaveConfig(cfg); err != nil {
@@ -346,15 +342,6 @@ func (w *wizard) stepInstallDir() fyne.CanvasObject {
 		})
 	})
 	return container.NewVBox(title, msg, entryWithBrowse(entry, browse))
-}
-
-func (w *wizard) stepCurseForge() fyne.CanvasObject {
-	title := widget.NewLabelWithStyle(w.app.T("wizard.curseforge.title"), fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
-	msg := widget.NewLabel(w.app.T("wizard.curseforge.description"))
-	entry := widget.NewPasswordEntry()
-	entry.SetText(w.state.CurseForgeKey)
-	entry.OnChanged = func(s string) { w.state.CurseForgeKey = s }
-	return container.NewVBox(title, msg, entry)
 }
 
 func (w *wizard) stepDiscord() fyne.CanvasObject {

@@ -91,7 +91,7 @@ description   = "Pick the language the app should use. The choice is saved to yo
 picker_label  = "Language"
 
 [wizard.steamcmd]
-title              = "Step 2 of 7 — SteamCMD"
+title              = "Step 2 of 6 — SteamCMD"
 description        = "SteamCMD is required to install and update the ASA Dedicated Server.\nClick Detect to find an existing install, or Install to download it now."
 path_placeholder   = "path to steamcmd.exe"
 button_install     = "Install to default"
@@ -103,20 +103,16 @@ install_done_body  = "Installed to %s"
 progress_starting  = "Starting SteamCMD installation…"
 
 [wizard.installdir]
-title       = "Step 3 of 7 — Server Install Directory"
+title       = "Step 3 of 6 — Server Install Directory"
 description = "Each server's files install under this base directory, in its own subfolder."
 err_required = "install directory is required"
 
-[wizard.curseforge]
-title       = "Step 4 of 7 — CurseForge API Key (optional)"
-description = "Required for in-app mod browsing. Free key at:\nhttps://console.curseforge.com/?#/api-keys"
-
 [wizard.discord]
-title       = "Step 5 of 7 — Discord Webhook (optional)"
+title       = "Step 4 of 6 — Discord Webhook (optional)"
 description = "Paste a Discord webhook URL to receive lifecycle notifications. Leave blank to skip."
 
 [wizard.cluster]
-title             = "Step 6 of 7 — Create First Cluster (optional)"
+title             = "Step 5 of 6 — Create First Cluster (optional)"
 description       = "A cluster groups your servers and shares the cluster directory between them.\nLeave the display name blank to skip — you can create clusters later from the toolbar."
 field_name        = "Display Name"
 field_id          = "Cluster ID"
@@ -124,7 +120,7 @@ field_id_placeholder = "auto-generated if blank"
 field_preset      = "Starting preset"
 
 [wizard.server]
-title             = "Step 7 of 7 — Create First Server (optional)"
+title             = "Step 6 of 6 — Create First Server (optional)"
 description       = "Set the server name and map. Ports auto-allocate from defaults; you can edit them later.\nLeave the server name blank to skip. Files install separately via the Install / Update button."
 field_name        = "Server Name"
 field_map         = "Map"

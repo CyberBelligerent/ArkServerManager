@@ -17,7 +17,6 @@ type Config struct {
 	ServerInstallDir string         `toml:"server_install_dir"`
 	BackupDir        string         `toml:"backup_dir"`
 	ASBDir           string         `toml:"asb_dir"` 				// ARK Smart Breeding multipliers output dir
-	CurseForgeAPIKey string         `toml:"curseforge_api_key"`
 	Locale       string         `toml:"locale"`
 	Discord      DiscordConfig  `toml:"discord"`
 	Schedule     ScheduleConfig `toml:"schedule"`
