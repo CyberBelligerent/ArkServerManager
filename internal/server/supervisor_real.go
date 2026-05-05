@@ -76,8 +76,9 @@ type session struct {
 	logHub  *lineHub
 	logFile *os.File
 
-	rconPort int
-	rconPwd  string
+	rconPort    int
+	rconPwd     string
+	rconEnabled bool
 
 	mu     sync.Mutex
 	status Status
@@ -142,6 +143,17 @@ func (s *RealSupervisor) Start(ctx context.Context, serverID int64) error {
 		return fmt.Errorf("open log file: %w", err)
 	}
 
+	arkLogBaseSize := int64(0)
+	arkLogPath := filepath.Join(srv.InstallDir, "ShooterGame", "Saved", "Logs", "ShooterGame.log")
+	if _, err := os.Stat(arkLogPath); err == nil {
+		archived := arkLogPath + ".prev"
+		_ = os.Remove(archived)
+		if rerr := os.Rename(arkLogPath, archived); rerr != nil {
+			s.deps.Log.Warn("could not archive previous ShooterGame.log; using offset fallback", "server_id", serverID, "err", rerr)
+			arkLogBaseSize = arkLogCurrentSize(srv.InstallDir)
+		}
+	}
+
 	hub := newLineHub()
 	stdout := newLinePump(logFile, hub)
 	stderr := newLinePump(logFile, hub)
@@ -155,14 +167,15 @@ func (s *RealSupervisor) Start(ctx context.Context, serverID int64) error {
 	}
 
 	sess := &session{
-		serverID: serverID,
-		name:     srv.Name,
-		proc:     proc,
-		cancel:   cancel,
-		logHub:   hub,
-		logFile:  logFile,
-		rconPort: srv.Ports.RCON,
-		rconPwd:  srv.RCONPassword,
+		serverID:    serverID,
+		name:        srv.Name,
+		proc:        proc,
+		cancel:      cancel,
+		logHub:      hub,
+		logFile:     logFile,
+		rconPort:    srv.Ports.RCON,
+		rconPwd:     srv.RCONPassword,
+		rconEnabled: srv.RCONEnabled,
 	}
 
 	s.mu.Lock()
@@ -174,7 +187,7 @@ func (s *RealSupervisor) Start(ctx context.Context, serverID int64) error {
 	s.deps.Log.Info("server starting", "server_id", serverID, "name", srv.Name, "pid", proc.PID())
 
 	// Tail ARK's own log file into the hub
-	go tailARKLog(procCtx, proc.Done(), hub, srv.InstallDir)
+	go tailARKLog(procCtx, proc.Done(), hub, srv.InstallDir, arkLogBaseSize)
 
 	go s.watchReadiness(procCtx, sess)
 	go s.watchExit(sess)
@@ -194,12 +207,14 @@ func (s *RealSupervisor) Stop(ctx context.Context, serverID int64, graceful bool
 
 	s.transition(sess, StatusStopping)
 
-	if graceful {
+	if graceful && sess.rconEnabled {
 		if err := s.gracefulStop(ctx, sess); err == nil {
 			return nil
 		} else {
 			s.deps.Log.Warn("graceful stop failed; killing", "server_id", serverID, "err", err)
 		}
+	} else if graceful {
+		s.deps.Log.Info("rcon disabled; skipping graceful stop", "server_id", serverID)
 	}
 	return sess.proc.Kill()
 }
@@ -346,6 +361,11 @@ func (s *RealSupervisor) watchReadiness(ctx context.Context, sess *session) {
 			if sess.getStatus() == StatusStopping {
 				return
 			}
+			if !sess.rconEnabled {
+				// Without RCON we can only detect readiness via log
+				// signals; fall through and keep waiting for one.
+				continue
+			}
 			c := s.deps.RCONFactory()
 			probeCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
 			err := c.Dial(probeCtx, "127.0.0.1", sess.rconPort, sess.rconPwd)
@@ -358,6 +378,7 @@ func (s *RealSupervisor) watchReadiness(ctx context.Context, sess *session) {
 			sess.mu.Lock()
 			sess.rcon = c
 			sess.mu.Unlock()
+			s.deps.Log.Info("rcon connected", "server_id", sess.serverID, "port", sess.rconPort, "password_len", len(sess.rconPwd))
 			s.markReady(sess, "rcon probe")
 			return
 		}
